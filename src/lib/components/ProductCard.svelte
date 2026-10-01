@@ -23,25 +23,35 @@
 <Card.Root
     class="group relative overflow-hidden flex flex-col p-0 transition-all duration-200 hover:shadow-lg hover:border-primary/30 border-border/60"
 >
-    <!-- Imagen del Producto con overlay compacto -->
-    {#if product.imageUrl}
-        <div class="relative w-full h-36 shrink-0 overflow-hidden bg-muted m-0 p-0">
+    <!-- Imagen del Producto con overlay compacto y fallback -->
+    <div class="relative w-full h-36 shrink-0 overflow-hidden bg-muted m-0 p-0 flex items-center justify-center">
+        {#if product.imageUrl}
             <img
                 src={product.imageUrl}
                 alt={product.name}
                 class="block w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onerror={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.src = "/images/products/placeholder.svg";
+                }}
             />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-            
-            <!-- Indicador de fotos de ejemplos -->
-            {#if product.fotosDeEjemplos && product.fotosDeEjemplos.length > 0}
-                <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-                    <ImageIcon size={10} class="text-white" />
-                    <span class="text-[10px] text-white font-medium">{product.fotosDeEjemplos.length}</span>
-                </div>
-            {/if}
-        </div>
-    {/if}
+        {:else}
+            <img
+                src="/images/products/placeholder.svg"
+                alt={product.name}
+                class="w-full h-full object-cover opacity-70"
+            />
+        {/if}
+        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+        
+        <!-- Indicador de fotos de ejemplos -->
+        {#if product.fotosDeEjemplos && product.fotosDeEjemplos.length > 0}
+            <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+                <ImageIcon size={10} class="text-white" />
+                <span class="text-[10px] text-white font-medium">{product.fotosDeEjemplos.length}</span>
+            </div>
+        {/if}
+    </div>
 
     <!-- Contenido -->
     <div class="p-4 flex-1 flex flex-col justify-between space-y-3">

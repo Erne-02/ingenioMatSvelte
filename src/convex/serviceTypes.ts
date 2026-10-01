@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./admins";
 
 export const list = query({
   args: {},
@@ -21,6 +22,7 @@ export const create = mutation({
     name: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const newType = {
       name: args.name,
     };
@@ -35,6 +37,7 @@ export const update = mutation({
     name: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
@@ -45,10 +48,11 @@ export const remove = mutation({
     id: v.id("serviceTypes"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     // Verificar si hay servicios con este tipo
     const servicesWithType = await ctx.db
       .query("services")
-      .filter((q) => q.eq(q.field("serviceTypeId"), args.id))
+      .withIndex("by_serviceType", (q) => q.eq("serviceTypeId", args.id))
       .collect();
 
     if (servicesWithType.length > 0) {

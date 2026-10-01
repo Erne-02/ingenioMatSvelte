@@ -25,8 +25,6 @@
     // Filtros
     let searchQuery = $state("");
     let filterCategory = $state("");
-    let filterPriceMin = $state<number | undefined>(undefined);
-    let filterPriceMax = $state<number | undefined>(undefined);
     let showFilters = $state(false);
 
     // --- Consultas y Mutaciones de Convex ---
@@ -37,6 +35,22 @@
     const createProduct = useMutation(api.products.create);
     const updateProduct = useMutation(api.products.update);
     const generateUploadUrl = useMutation(api.products.generateUploadUrl);
+    const seedProducts = useMutation(api.products.seedProducts);
+
+    let isSeeding = $state(false);
+
+    async function handleSeed() {
+        isSeeding = true;
+        try {
+            await seedProducts({});
+            toast.success("Catálogo de productos e imágenes cargado con éxito");
+        } catch (err) {
+            console.error("Error al cargar productos iniciales:", err);
+            toast.error("Error al cargar catálogo de prueba");
+        } finally {
+            isSeeding = false;
+        }
+    }
 
     // Helpers para nombres de sección/categoría
 
@@ -63,34 +77,14 @@
             if (filterCategory && product.categoryId !== filterCategory) {
                 return false;
             }
-            if (
-                filterPriceMin !== undefined &&
-                product.price < filterPriceMin
-            ) {
-                return false;
-            }
-            if (
-                filterPriceMax !== undefined &&
-                product.price > filterPriceMax
-            ) {
-                return false;
-            }
             return true;
         });
     });
 
-    let hasActiveFilters = $derived(
-        Boolean(
-            filterCategory ||
-            filterPriceMin !== undefined ||
-            filterPriceMax !== undefined,
-        ),
-    );
+    let hasActiveFilters = $derived(Boolean(filterCategory));
 
     function clearFilters() {
         filterCategory = "";
-        filterPriceMin = undefined;
-        filterPriceMax = undefined;
     }
 
     // --- Acciones ---
@@ -163,8 +157,6 @@
             <SearchAndFilters
                 bind:searchQuery
                 bind:filterCategory
-                bind:filterPriceMin
-                bind:filterPriceMax
                 categories={categoriesQuery.data || []}
                 {hasActiveFilters}
                 onClearFilters={clearFilters}
@@ -194,12 +186,24 @@
 
             <!-- Estado Vacío -->
             {#if filteredProducts.length === 0}
-                <div class="text-center py-12">
-                    <p class="text-muted-foreground tracking-wide">
+                <div class="text-center py-12 flex flex-col items-center justify-center">
+                    <p class="text-muted-foreground tracking-wide mb-4">
                         {hasActiveFilters || searchQuery
                             ? "No se encontraron productos con los filtros aplicados"
-                            : "No hay productos creados aún"}
+                            : "No hay productos creados aún en el catálogo"}
                     </p>
+                    {#if !hasActiveFilters && !searchQuery}
+                        <Button
+                            variant="outline"
+                            onclick={handleSeed}
+                            disabled={isSeeding}
+                            class="cursor-pointer"
+                        >
+                            {isSeeding
+                                ? "Generando productos con imágenes..."
+                                : "Cargar catálogo inicial con imágenes"}
+                        </Button>
+                    {/if}
                 </div>
             {/if}
         {/if}

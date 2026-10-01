@@ -1,5 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin } from "./admins";
 
 // Obtener todas las ofertas (para el admin)
 export const list = query({
@@ -15,7 +16,7 @@ export const getActive = query({
   handler: async (ctx) => {
     return await ctx.db
       .query("offers")
-      .filter((q) => q.eq(q.field("isActive"), true))
+      .withIndex("by_active", (q) => q.eq("isActive", true))
       .collect();
   },
 });
@@ -27,6 +28,7 @@ export const create = mutation({
     isActive: v.boolean(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     return await ctx.db.insert("offers", {
       text: args.text,
       isActive: args.isActive,
@@ -42,6 +44,7 @@ export const update = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
@@ -51,6 +54,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("offers") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });

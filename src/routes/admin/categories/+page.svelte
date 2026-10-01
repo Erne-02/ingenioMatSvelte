@@ -6,23 +6,33 @@
     import CategoryForm from "$lib/components/CategoryForm.svelte";
     import { useQuery, useMutation } from "convex-svelte";
     import { api } from "$convex/_generated/api";
+    import type { Doc, Id } from "$convex/_generated/dataModel";
 
-    interface Category {
-        _id: string;
-        name: string;
-        description?: string;
-        order?: number;
-    }
+    type Category = Doc<"categories">;
 
     // 1. Queries y Mutaciones con Convex
     const categoriesQuery = useQuery(api.categories.list, {});
     const createCategoryMutation = useMutation(api.categories.create);
     const updateCategoryMutation = useMutation(api.categories.update);
     const removeCategoryMutation = useMutation(api.categories.remove);
+    const seedOfficialMutation = useMutation(api.categories.seedOfficial);
 
     // 2. Estados locales con Runes
     let showForm = $state(false);
     let editingCategory = $state<Category | null>(null);
+    let isSeeding = $state(false);
+
+    async function handleSeedOfficial() {
+        isSeeding = true;
+        try {
+            await seedOfficialMutation({});
+            toast.success("Categorías oficiales configuradas con éxito");
+        } catch (error) {
+            toast.error("Error al crear categorías oficiales");
+        } finally {
+            isSeeding = false;
+        }
+    }
 
     // 3. Reactividad con $derived para el ordenamiento
     let sortedCategories = $derived(
@@ -31,7 +41,7 @@
         ),
     );
 
-    async function handleDelete(id: string) {
+    async function handleDelete(id: Id<"categories">) {
         if (confirm("¿Estás seguro de eliminar esta categoría?")) {
             try {
                 await removeCategoryMutation({ id });
@@ -56,7 +66,11 @@
         editingCategory = null;
     }
 
-    async function handleSave(data: { name: string }) {
+    async function handleSave(data: {
+        name: string;
+        description?: string;
+        order?: number;
+    }) {
         try {
             if (editingCategory) {
                 await updateCategoryMutation({
@@ -78,14 +92,29 @@
 <div class="p-6">
     <div class="mx-auto max-w-7xl">
         <!-- Encabezado de la página -->
-        <div class="mb-6 flex items-center justify-between">
-            <h1 class="font-sans text-2xl font-bold tracking-widest">
-                Categorías
-            </h1>
-            <Button onclick={() => (showForm = true)} class="gap-2">
-                <Plus size={20} />
-                Nueva categoría
-            </Button>
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="font-sans text-2xl font-bold tracking-widest">
+                    Categorías
+                </h1>
+                <p class="text-sm text-muted-foreground mt-1">
+                    Administra las categorías principales del catálogo de productos.
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <Button
+                    variant="outline"
+                    onclick={handleSeedOfficial}
+                    disabled={isSeeding}
+                    class="cursor-pointer"
+                >
+                    {isSeeding ? "Configurando..." : "Cargar categorías oficiales"}
+                </Button>
+                <Button onclick={() => (showForm = true)} class="gap-2 cursor-pointer">
+                    <Plus size={20} />
+                    Nueva categoría
+                </Button>
+            </div>
         </div>
 
         <!-- Grid de Categorías -->
@@ -141,10 +170,27 @@
             </div>
 
             {#if sortedCategories.length === 0}
-                <div class="py-12 text-center">
-                    <p class="text-muted-foreground tracking-wide">
-                        No hay categorías creadas aún
+                <div class="py-16 text-center flex flex-col items-center justify-center bg-card border border-border/60 rounded-2xl p-8 mt-6">
+                    <p class="text-muted-foreground tracking-wide mb-4">
+                        No hay categorías creadas aún en el catálogo
                     </p>
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <Button
+                            variant="default"
+                            onclick={handleSeedOfficial}
+                            disabled={isSeeding}
+                            class="cursor-pointer"
+                        >
+                            {isSeeding ? "Creando categorías..." : "Crear las 6 categorías oficiales ahora"}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onclick={() => (showForm = true)}
+                            class="cursor-pointer"
+                        >
+                            Crear categoría manual
+                        </Button>
+                    </div>
                 </div>
             {/if}
         {/if}

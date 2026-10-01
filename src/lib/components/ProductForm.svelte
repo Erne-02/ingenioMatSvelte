@@ -22,7 +22,7 @@
     }
 
     interface Props {
-        product?: Partial<v.InferInput<ProductSchema>>;
+        product?: Partial<v.InferInput<ProductSchema>> | null;
         categories: Category[];
         onSave: (data: v.InferOutput<ProductSchema>) => Promise<void>;
         onCancel: () => void;
@@ -281,7 +281,16 @@
 
     <!-- Categoría (shadcn Select) -->
     <div class="space-y-2">
-        <Label>Categoría</Label>
+        <div class="flex items-center justify-between">
+            <Label>Categoría</Label>
+            <a
+                href="/admin/categories"
+                target="_blank"
+                class="text-xs text-primary hover:underline font-medium"
+            >
+                + Gestionar categorías
+            </a>
+        </div>
         <Select.Root
             type="single"
             value={$formData.categoryId}

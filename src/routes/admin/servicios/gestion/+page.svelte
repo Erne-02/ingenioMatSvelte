@@ -20,13 +20,15 @@
     let showForm = $state(false);
     let editingService = $state<Service | null>(null);
 
-    function getServiceTypeName(id: string) {
-        if (!serviceTypesQuery.data) return "Desconocido";
-        const type = serviceTypesQuery.data.find(t => t._id === id);
+    function getServiceTypeName(
+        id: string | Id<"serviceTypes"> | null | undefined,
+    ) {
+        if (!id || !serviceTypesQuery.data) return "Desconocido";
+        const type = serviceTypesQuery.data.find((t) => t._id === id);
         return type ? type.name : "Desconocido";
     }
 
-    async function handleDelete(id: string) {
+    async function handleDelete(id: Id<"services">) {
         if (confirm("¿Estás seguro de eliminar este servicio?")) {
             try {
                 await removeServiceMutation({ id });

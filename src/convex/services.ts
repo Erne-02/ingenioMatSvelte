@@ -1,21 +1,27 @@
 import { v } from "convex/values";
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import { type Doc } from "./_generated/dataModel.d";
+import { requireAdmin } from "./admins";
 
-// Helper interno para resolver la URL del storage
+// Helper interno para resolver la URL del storage o mantener rutas locales/externas
 async function resolveServiceImage(ctx: QueryCtx, service: Doc<"services">) {
   if (!service.imageUrl) return service;
 
-  let cleanId = service.imageUrl.trim();
-  if (cleanId.startsWith("http")) {
-    cleanId = cleanId.split("/api/storage/")[1] || cleanId;
+  const cleanId = service.imageUrl.trim();
+  if (cleanId.startsWith("/") || (cleanId.startsWith("http") && !cleanId.includes("/api/storage/"))) {
+    return { ...service, imageUrl: cleanId };
+  }
+
+  let storageId = cleanId;
+  if (storageId.startsWith("http")) {
+    storageId = storageId.split("/api/storage/")[1] || storageId;
   }
 
   try {
-    const url = await ctx.storage.getUrl(cleanId as any);
-    return { ...service, imageUrl: url ?? undefined };
+    const url = await ctx.storage.getUrl(storageId as any);
+    return { ...service, imageUrl: url ?? cleanId };
   } catch (error) {
-    return { ...service, imageUrl: undefined };
+    return { ...service, imageUrl: cleanId };
   }
 }
 
@@ -25,21 +31,26 @@ async function resolveServiceExampleImages(ctx: QueryCtx, service: Doc<"services
 
   const resolvedUrls = await Promise.all(
     service.fotosDeEjemplos.map(async (imageId) => {
-      let cleanId = imageId.trim();
-      if (cleanId.startsWith("http")) {
-        cleanId = cleanId.split("/api/storage/")[1] || cleanId;
+      const cleanId = imageId.trim();
+      if (cleanId.startsWith("/") || (cleanId.startsWith("http") && !cleanId.includes("/api/storage/"))) {
+        return cleanId;
+      }
+
+      let storageId = cleanId;
+      if (storageId.startsWith("http")) {
+        storageId = storageId.split("/api/storage/")[1] || storageId;
       }
 
       try {
-        const url = await ctx.storage.getUrl(cleanId as any);
-        return url ?? undefined;
+        const url = await ctx.storage.getUrl(storageId as any);
+        return url ?? cleanId;
       } catch (error) {
-        return undefined;
+        return cleanId;
       }
     })
   );
 
-  return { ...service, fotosDeEjemplos: resolvedUrls.filter((url): url is string => url !== undefined) };
+  return { ...service, fotosDeEjemplos: resolvedUrls.filter((url): url is string => !!url) };
 }
 
 export const list = query({
@@ -79,6 +90,7 @@ export const create = mutation({
     requisitos: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const newService = {
       name: args.name,
       description: args.description,
@@ -111,6 +123,7 @@ export const update = mutation({
     requisitos: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
@@ -121,6 +134,7 @@ export const remove = mutation({
     id: v.id("services"),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });

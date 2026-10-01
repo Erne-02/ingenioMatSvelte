@@ -6,11 +6,9 @@
     import ServiceTypeForm from "$lib/components/ServiceTypeForm.svelte";
     import { useQuery, useMutation } from "convex-svelte";
     import { api } from "$convex/_generated/api";
+    import type { Doc, Id } from "$convex/_generated/dataModel";
 
-    interface ServiceType {
-        _id: string;
-        name: string;
-    }
+    type ServiceType = Doc<"serviceTypes">;
 
     const serviceTypesQuery = useQuery(api.serviceTypes.list, {});
     const createServiceTypeMutation = useMutation(api.serviceTypes.create);
@@ -20,7 +18,7 @@
     let showForm = $state(false);
     let editingServiceType = $state<ServiceType | null>(null);
 
-    async function handleDelete(id: string) {
+    async function handleDelete(id: Id<"serviceTypes">) {
         if (confirm("¿Estás seguro de eliminar este tipo de servicio?")) {
             try {
                 await removeServiceTypeMutation({ id });

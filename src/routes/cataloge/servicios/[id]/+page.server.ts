@@ -24,6 +24,8 @@ export const load: PageServerLoad = async ({ params }) => {
       serviceType
     };
   } catch (err) {
+    // Re-lanzar los errores HTTP de SvelteKit (p. ej. 404) sin convertirlos en 500
+    if (err && typeof err === "object" && "status" in err) throw err;
     console.error("Error loading service detail:", err);
     throw error(500, "Error al cargar el servicio");
   }

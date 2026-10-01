@@ -13,19 +13,27 @@
     interface Props {
         category?: Category | null;
         onClose: () => void;
-        onSave: (data: { name: string }) => Promise<void>;
+        onSave: (data: {
+            name: string;
+            description?: string;
+            order?: number;
+        }) => Promise<void>;
     }
 
     let { category = null, onClose, onSave }: Props = $props();
 
-    // 1. Estado local editable para el input
+    // 1. Estado local editable para los inputs
     let name = $state("");
+    let description = $state("");
+    let order = $state<number | undefined>(undefined);
     let error = $state<string | null>(null);
     let isSubmitting = $state(false);
 
-    // 2. Sincronizamos 'name' cuando cambie la prop 'category' (ej. al abrir el modal para otra categoría)
+    // 2. Sincronizamos los campos cuando cambie la prop 'category'
     $effect(() => {
         name = category?.name ?? "";
+        description = category?.description ?? "";
+        order = category?.order;
     });
 
     async function handleSubmit(e: SubmitEvent) {
@@ -40,7 +48,14 @@
         isSubmitting = true;
 
         try {
-            await onSave({ name: name.trim() });
+            await onSave({
+                name: name.trim(),
+                description: description.trim() || undefined,
+                order:
+                    order === undefined || Number.isNaN(order)
+                        ? undefined
+                        : order,
+            });
         } finally {
             isSubmitting = false;
         }
@@ -60,6 +75,27 @@
         {#if error}
             <p class="text-sm font-medium text-destructive">{error}</p>
         {/if}
+    </div>
+
+    <div class="space-y-2">
+        <Label for="description">Descripción (opcional)</Label>
+        <Input
+            id="description"
+            bind:value={description}
+            placeholder="Breve descripción de la categoría"
+            disabled={isSubmitting}
+        />
+    </div>
+
+    <div class="space-y-2">
+        <Label for="order">Orden (opcional)</Label>
+        <Input
+            id="order"
+            type="number"
+            bind:value={order}
+            placeholder="Ej. 1"
+            disabled={isSubmitting}
+        />
     </div>
 
     <div class="flex gap-3 pt-4">
