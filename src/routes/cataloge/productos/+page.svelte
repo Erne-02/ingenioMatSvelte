@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { page } from "$app/state";
     import { ChevronRight, Home, Package, Search, Layers } from "@lucide/svelte";
     import ProductCardCustomer from "$lib/components/ProductCardCustomer.svelte";
     import { Input } from "$lib/components/ui/input/index.js";
@@ -14,10 +13,9 @@
 
     let { data }: { data: PageData } = $props();
 
-    // Estado de filtros (la categoría puede venir preseleccionada desde la URL,
-    // p. ej. al llegar desde los chips de categorías del inicio)
+    // Estado de filtros
     let searchQuery = $state("");
-    let filterCategory = $state(page.url.searchParams.get("categoria") ?? "");
+    let filterCategory = $state("");
 
     // Productos filtrados
     let filteredProducts = $derived.by(() => {
