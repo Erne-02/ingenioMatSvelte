@@ -46,6 +46,7 @@
         usos: "",
         preparacion: "",
         actividad: "",
+        revisionTecnica: "",
         medidas: "",
         fotosDeEjemplos: [],
     };
@@ -125,7 +126,7 @@
 
                 // Combinar fotos de ejemplo existentes con las nuevas
                 const allExamplePhotos = [
-                    ...(f.data.fotosDeEjemplos || []),
+                    ...(f.data.fotosDeEjemplos || []).map((photo: string) => normalizeStorageImage(photo)),
                     ...finalExamplePhotos
                 ];
 
@@ -141,7 +142,7 @@
 
                 await onSave({
                     ...f.data,
-                    imageUrl: finalImageUrl,
+                    imageUrl: normalizeStorageImage(finalImageUrl),
                     slug: finalSlug,
                     fotosDeEjemplos: allExamplePhotos,
                 });
@@ -152,6 +153,30 @@
     });
 
     const { form: formData, errors, enhance, reset } = form;
+
+    function normalizeStorageImage(value: string): string {
+        const cleanValue = value?.trim() ?? "";
+        if (!cleanValue) return cleanValue;
+
+        if (cleanValue.startsWith("/") || cleanValue.startsWith("blob:") || cleanValue.startsWith("data:")) {
+            return cleanValue;
+        }
+
+        if (cleanValue.startsWith("http")) {
+            try {
+                const parsed = new URL(cleanValue);
+                const storageMatch = parsed.pathname.match(/\/api\/storage\/([^?]+)/i);
+                if (storageMatch?.[1]) {
+                    return decodeURIComponent(storageMatch[1]);
+                }
+                return cleanValue;
+            } catch {
+                return cleanValue;
+            }
+        }
+
+        return cleanValue.split("?")[0];
+    }
 
     // Estados UI de soporte mediante Runas ($state)
     let imageFile = $state<File | null>(null);
@@ -171,6 +196,7 @@
             usos: product?.usos ?? "",
             preparacion: product?.preparacion ?? "",
             actividad: product?.actividad ?? "",
+            revisionTecnica: product?.revisionTecnica ?? "",
             medidas: product?.medidas ?? "",
             fotosDeEjemplos: product?.fotosDeEjemplos ?? [],
         },
@@ -399,6 +425,17 @@
                 id="actividad"
                 bind:value={$formData.actividad}
                 placeholder="Describe la actividad o aplicación..."
+                rows={3}
+            />
+        </div>
+
+        <!-- Revisión Técnica -->
+        <div class="space-y-2">
+            <Label for="revisionTecnica">Revisión Técnica</Label>
+            <Textarea
+                id="revisionTecnica"
+                bind:value={$formData.revisionTecnica}
+                placeholder="Incluye la revisión técnica del producto..."
                 rows={3}
             />
         </div>

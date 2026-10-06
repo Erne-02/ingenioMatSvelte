@@ -3,24 +3,43 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import { type Doc } from "./_generated/dataModel.d";
 import { requireAdmin } from "./admins";
 
+function normalizeStorageReference(value: string): string {
+  const cleanValue = value.trim();
+  if (!cleanValue) return cleanValue;
+
+  if (cleanValue.startsWith("/") || cleanValue.startsWith("blob:") || cleanValue.startsWith("data:")) {
+    return cleanValue;
+  }
+
+  if (cleanValue.startsWith("http")) {
+    try {
+      const parsed = new URL(cleanValue);
+      const storageMatch = parsed.pathname.match(/\/api\/storage\/([^?]+)/i);
+      if (storageMatch?.[1]) {
+        return decodeURIComponent(storageMatch[1]);
+      }
+      return cleanValue;
+    } catch {
+      return cleanValue;
+    }
+  }
+
+  return cleanValue.split("?")[0];
+}
+
 // Helper interno para resolver la URL del storage o mantener rutas locales/externas
 async function resolveProductImage(ctx: QueryCtx, product: Doc<"products">) {
   if (!product.imageUrl) return product;
 
-  const cleanId = product.imageUrl.trim();
+  const cleanId = normalizeStorageReference(product.imageUrl);
 
   // Si es una ruta estática local (/images/..., /saco1.png) o una URL externa que no sea de Convex Storage
   if (cleanId.startsWith("/") || (cleanId.startsWith("http") && !cleanId.includes("/api/storage/"))) {
     return { ...product, imageUrl: cleanId };
   }
 
-  let storageId = cleanId;
-  if (storageId.startsWith("http")) {
-    storageId = storageId.split("/api/storage/")[1] || storageId;
-  }
-
   try {
-    const url = await ctx.storage.getUrl(storageId as any);
+    const url = await ctx.storage.getUrl(cleanId as any);
     return { ...product, imageUrl: url ?? cleanId };
   } catch (error) {
     console.error(
@@ -40,16 +59,12 @@ async function resolveExamplePhotos(ctx: QueryCtx, product: Doc<"products">) {
   try {
     const resolvedPhotos = await Promise.all(
       product.fotosDeEjemplos.map(async (photoId) => {
-        const cleanId = photoId.trim();
+        const cleanId = normalizeStorageReference(photoId);
         if (cleanId.startsWith("/") || (cleanId.startsWith("http") && !cleanId.includes("/api/storage/"))) {
           return cleanId;
         }
 
-        let storageId = cleanId;
-        if (storageId.startsWith("http")) {
-          storageId = storageId.split("/api/storage/")[1] || storageId;
-        }
-        const url = await ctx.storage.getUrl(storageId as any);
+        const url = await ctx.storage.getUrl(cleanId as any);
         return url ?? cleanId;
       })
     );
@@ -113,6 +128,7 @@ export const create = mutation({
     usos: v.optional(v.string()),
     preparacion: v.optional(v.string()),
     actividad: v.optional(v.string()),
+    revisionTecnica: v.optional(v.string()),
     medidas: v.optional(v.string()),
     fotosDeEjemplos: v.optional(v.array(v.string())),
   },
@@ -134,6 +150,7 @@ export const create = mutation({
       usos: args.usos,
       preparacion: args.preparacion,
       actividad: args.actividad,
+      revisionTecnica: args.revisionTecnica,
       medidas: args.medidas,
       fotosDeEjemplos: args.fotosDeEjemplos,
     };
@@ -152,6 +169,7 @@ export const update = mutation({
     usos: v.optional(v.string()),
     preparacion: v.optional(v.string()),
     actividad: v.optional(v.string()),
+    revisionTecnica: v.optional(v.string()),
     medidas: v.optional(v.string()),
     fotosDeEjemplos: v.optional(v.array(v.string())),
   },
@@ -223,16 +241,17 @@ export const seedProducts = mutation({
     // 2. Sembrar productos con imágenes locales preparados para las categorías oficiales
     const demoProducts = [
       {
-        name: "Cemento Portland Especial",
-        slug: "cemento-portland-especial",
-        imageUrl: "/images/products/cemento-portland.png",
+        name: "Cemento",
+        slug: "cemento",
+        imageUrl: "/images/products/cemento.png",
         categoryId: catMap["Morteros y Premezclas"],
         usos: "Ideal para fundaciones, vigas, columnas, muros estructurales y morteros de alta exigencia.",
         preparacion: "Mezclar en seco con áridos limpios antes de incorporar agua dosificada. Evitar exceso de líquido.",
         actividad: "Fraguado inicial rápido en 45 minutos y resistencia mecánica óptima a los 28 días.",
+        revisionTecnica: "Revisión técnica: cemento de uso estructural para obra civil y albañilería, con resistencia y adherencia adecuadas para proyectos de construcción, morteros y elementos de concreto. Verificar dosificación y condiciones de almacenamiento antes del uso.",
         medidas: "Saco de 42.5 kg / Pallet de 40 sacos",
         fotosDeEjemplos: [
-          "/images/products/cemento-portland.png",
+          "/images/products/cemento.png",
           "/images/products/losas-ceramicas.png",
         ],
       },
@@ -314,6 +333,59 @@ export const seedProducts = mutation({
           "/images/products/manguera-construccion.png",
         ],
       },
+
+      {
+        name: "Hormigón Premezclado",
+        slug: "hormigon-premezclado",
+        imageUrl: "/images/products/Premezcla.png",
+        categoryId: catMap["Morteros y Premezclas"],
+        usos: "Fabricación de elementos estructurales, muros y pavimentos.",
+        preparacion: "Mezclar con agua según la dosificación recomendada.",
+        actividad: "Uso general para obra civil y acabados.",
+        medidas: "25 kg",
+        fotosDeEjemplos: [
+          "/images/products/Premezcla.png",
+        ],
+      },
+      {
+        name: "Mortero Calfín",
+        slug: "mortero-calfin",
+        imageUrl: "/images/products/Calfin.png",
+        categoryId: catMap["Morteros y Premezclas"],
+        usos: "Enlucidos, revoques y revestimientos interiores y exteriores.",
+        preparacion: "Mezclar con agua hasta lograr una pasta uniforme.",
+        actividad: "Alta adherencia y trabajabilidad.",
+        medidas: "25 kg / 40 kg",
+        fotosDeEjemplos: [
+          "/images/products/Calfin.png",
+        ],
+      },
+      {
+        name: "Mortero Calcol",
+        slug: "mortero-calcol",
+        imageUrl: "/images/products/Calgru.png",
+        categoryId: catMap["Morteros y Premezclas"],
+        usos: "Aplicación en albañilería y revestimientos.",
+        preparacion: "Preparar con agua y aplicar en capas según recomendación.",
+        actividad: "Rendimiento y resistencia para obra.",
+        medidas: "25 kg / 40 kg",
+        fotosDeEjemplos: [
+          "/images/products/Calgru.png",
+        ],
+      },
+      {
+        name: "Mortero Grueso",
+        slug: "mortero-grueso",
+        imageUrl: "/images/products/grueso.png",
+        categoryId: catMap["Morteros y Premezclas"],
+        usos: "Revestimientos gruesos, rellenos y trabajos de albañilería.",
+        preparacion: "Aplicar en capas y mezclar con agua según dosificación.",
+        actividad: "Ideal para reparaciones y acabados resistentes.",
+        medidas: "25 kg",
+        fotosDeEjemplos: [
+          "/images/products/grueso.png",
+        ],
+      },
     ];
 
     let inserted = 0;
@@ -321,17 +393,25 @@ export const seedProducts = mutation({
       const existing = await ctx.db
         .query("products")
         .withIndex("by_slug", (q) => q.eq("slug", prod.slug))
-        .first();
+        .first() ?? (prod.slug === "cemento"
+        ? await ctx.db
+            .query("products")
+            .withIndex("by_slug", (q) => q.eq("slug", "cemento-portland-especial"))
+            .first()
+        : null);
 
       if (!existing) {
         await ctx.db.insert("products", prod);
         inserted++;
       } else {
         await ctx.db.patch(existing._id, {
+          name: prod.name,
+          slug: prod.slug,
           imageUrl: prod.imageUrl,
           usos: prod.usos,
           preparacion: prod.preparacion,
           actividad: prod.actividad,
+          revisionTecnica: prod.revisionTecnica,
           medidas: prod.medidas,
           fotosDeEjemplos: prod.fotosDeEjemplos,
         });

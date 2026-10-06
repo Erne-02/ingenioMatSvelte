@@ -3,22 +3,41 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import { type Doc } from "./_generated/dataModel.d";
 import { requireAdmin } from "./admins";
 
+function normalizeStorageReference(value: string): string {
+  const cleanValue = value.trim();
+  if (!cleanValue) return cleanValue;
+
+  if (cleanValue.startsWith("/") || cleanValue.startsWith("blob:") || cleanValue.startsWith("data:")) {
+    return cleanValue;
+  }
+
+  if (cleanValue.startsWith("http")) {
+    try {
+      const parsed = new URL(cleanValue);
+      const storageMatch = parsed.pathname.match(/\/api\/storage\/([^?]+)/i);
+      if (storageMatch?.[1]) {
+        return decodeURIComponent(storageMatch[1]);
+      }
+      return cleanValue;
+    } catch {
+      return cleanValue;
+    }
+  }
+
+  return cleanValue.split("?")[0];
+}
+
 // Helper interno para resolver la URL del storage o mantener rutas locales/externas
 async function resolveServiceImage(ctx: QueryCtx, service: Doc<"services">) {
   if (!service.imageUrl) return service;
 
-  const cleanId = service.imageUrl.trim();
+  const cleanId = normalizeStorageReference(service.imageUrl);
   if (cleanId.startsWith("/") || (cleanId.startsWith("http") && !cleanId.includes("/api/storage/"))) {
     return { ...service, imageUrl: cleanId };
   }
 
-  let storageId = cleanId;
-  if (storageId.startsWith("http")) {
-    storageId = storageId.split("/api/storage/")[1] || storageId;
-  }
-
   try {
-    const url = await ctx.storage.getUrl(storageId as any);
+    const url = await ctx.storage.getUrl(cleanId as any);
     return { ...service, imageUrl: url ?? cleanId };
   } catch (error) {
     return { ...service, imageUrl: cleanId };
@@ -31,18 +50,13 @@ async function resolveServiceExampleImages(ctx: QueryCtx, service: Doc<"services
 
   const resolvedUrls = await Promise.all(
     service.fotosDeEjemplos.map(async (imageId) => {
-      const cleanId = imageId.trim();
+      const cleanId = normalizeStorageReference(imageId);
       if (cleanId.startsWith("/") || (cleanId.startsWith("http") && !cleanId.includes("/api/storage/"))) {
         return cleanId;
       }
 
-      let storageId = cleanId;
-      if (storageId.startsWith("http")) {
-        storageId = storageId.split("/api/storage/")[1] || storageId;
-      }
-
       try {
-        const url = await ctx.storage.getUrl(storageId as any);
+        const url = await ctx.storage.getUrl(cleanId as any);
         return url ?? cleanId;
       } catch (error) {
         return cleanId;

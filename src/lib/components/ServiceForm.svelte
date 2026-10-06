@@ -45,6 +45,30 @@
         requisitos: service?.requisitos ?? "",
     });
 
+    function normalizeStorageImage(value: string): string {
+        const cleanValue = value?.trim() ?? "";
+        if (!cleanValue) return cleanValue;
+
+        if (cleanValue.startsWith("/") || cleanValue.startsWith("blob:") || cleanValue.startsWith("data:")) {
+            return cleanValue;
+        }
+
+        if (cleanValue.startsWith("http")) {
+            try {
+                const parsed = new URL(cleanValue);
+                const storageMatch = parsed.pathname.match(/\/api\/storage\/([^?]+)/i);
+                if (storageMatch?.[1]) {
+                    return decodeURIComponent(storageMatch[1]);
+                }
+                return cleanValue;
+            } catch {
+                return cleanValue;
+            }
+        }
+
+        return cleanValue.split("?")[0];
+    }
+
     let isSubmitting = $state(false);
     let isUploading = $state(false);
     let fileInput: HTMLInputElement;
@@ -182,13 +206,13 @@
 
             // Combinar fotos de ejemplo existentes con las nuevas
             const allExamplePhotos = [
-                ...(formData.fotosDeEjemplos || []),
+                ...(formData.fotosDeEjemplos || []).map((photo: string) => normalizeStorageImage(photo)),
                 ...finalExamplePhotos
             ];
 
             await onSave({ 
                 ...formData, 
-                imageUrl: finalImageUrl,
+                imageUrl: normalizeStorageImage(finalImageUrl),
                 fotosDeEjemplos: allExamplePhotos
             });
         } finally {

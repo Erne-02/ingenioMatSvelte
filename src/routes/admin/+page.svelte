@@ -143,15 +143,27 @@
                 <h1 class="text-2xl font-bold tracking-widest font-sans">
                     Productos
                 </h1>
-                <Button
-                    onclick={() => {
-                        editingProduct = null;
-                        showForm = true;
-                    }}
-                >
-                    <Plus size={20} class="mr-2 inline-block" />
-                    Nuevo producto
-                </Button>
+                <div class="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        onclick={handleSeed}
+                        disabled={isSeeding}
+                        class="cursor-pointer"
+                    >
+                        {isSeeding
+                            ? "Generando..."
+                            : "Añadir productos de ejemplo"}
+                    </Button>
+                    <Button
+                        onclick={() => {
+                            editingProduct = null;
+                            showForm = true;
+                        }}
+                    >
+                        <Plus size={20} class="mr-2 inline-block" />
+                        Nuevo producto
+                    </Button>
+                </div>
             </div>
 
             <SearchAndFilters

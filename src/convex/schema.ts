@@ -19,6 +19,7 @@ export default defineSchema({
     usos: v.optional(v.string()),
     preparacion: v.optional(v.string()),
     actividad: v.optional(v.string()),
+    revisionTecnica: v.optional(v.string()),
     medidas: v.optional(v.string()),
     fotosDeEjemplos: v.optional(v.array(v.string())),
   })

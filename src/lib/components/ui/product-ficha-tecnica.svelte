@@ -13,6 +13,7 @@
     usos: product?.usos || "Información disponible bajo solicitud técnica.",
     preparacion: product?.preparacion || "Consultar manual de aplicación y dosificación.",
     actividad: product?.actividad || "Cumple estándares de control de calidad industrial.",
+    revisionTecnica: product?.revisionTecnica || "Revisión técnica pendiente por registrar.",
     medidas: product?.medidas || "Empaque estándar de fábrica.",
   });
 
@@ -93,6 +94,18 @@
           </div>
           <p class="text-muted-foreground text-xs sm:text-sm leading-relaxed">
             {fichaData.medidas}
+          </p>
+        </div>
+
+        <div class="bg-background/80 rounded-xl p-4 border border-border/50 hover:border-primary/30 transition-colors md:col-span-2">
+          <div class="flex items-center gap-2 mb-2 text-primary">
+            <ClipboardList size={16} />
+            <h4 class="text-xs font-bold uppercase tracking-wider text-foreground">
+              Revisión Técnica
+            </h4>
+          </div>
+          <p class="text-muted-foreground text-xs sm:text-sm leading-relaxed">
+            {fichaData.revisionTecnica}
           </p>
         </div>
       </div>
