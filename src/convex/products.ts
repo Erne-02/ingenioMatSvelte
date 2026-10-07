@@ -238,7 +238,48 @@ export const seedProducts = mutation({
       }
     }
 
-    // 2. Sembrar productos con imágenes locales preparados para las categorías oficiales
+    // 2. Limpiar productos antiguos de Tuberías y Canalizaciones para dejar solo la versión con las imágenes nuevas
+    const tuberiasCategoryId = catMap["Tuberías y Canalizaciones"];
+    const existingTuberiaProducts = await ctx.db
+      .query("products")
+      .filter((q) => q.eq(q.field("categoryId"), tuberiasCategoryId))
+      .collect();
+
+    for (const product of existingTuberiaProducts) {
+      await ctx.db.delete(product._id);
+    }
+
+    const aridosCategoryId = catMap["Áridos y Agregados"];
+    const existingAridosProducts = await ctx.db
+      .query("products")
+      .filter((q) => q.eq(q.field("categoryId"), aridosCategoryId))
+      .collect();
+
+    for (const product of existingAridosProducts) {
+      await ctx.db.delete(product._id);
+    }
+
+    const luminariasCategoryId = catMap["Luminarias"];
+    const existingLuminariasProducts = await ctx.db
+      .query("products")
+      .filter((q) => q.eq(q.field("categoryId"), luminariasCategoryId))
+      .collect();
+
+    for (const product of existingLuminariasProducts) {
+      await ctx.db.delete(product._id);
+    }
+
+    const terminacionesCategoryId = catMap["Terminaciones y Revestimientos"];
+    const existingTerminacionesProducts = await ctx.db
+      .query("products")
+      .filter((q) => q.eq(q.field("categoryId"), terminacionesCategoryId))
+      .collect();
+
+    for (const product of existingTerminacionesProducts) {
+      await ctx.db.delete(product._id);
+    }
+
+    // 3. Sembrar productos con imágenes locales preparados para las categorías oficiales
     const demoProducts = [
       {
         name: "Cemento",
@@ -269,19 +310,6 @@ export const seedProducts = mutation({
         ],
       },
       {
-        name: "Planchas de Zinc Ondulado Galvanizado",
-        slug: "planchas-zinc-ondulado",
-        imageUrl: "/images/products/techos-zinc-ondulado.png",
-        categoryId: catMap["Terminaciones y Revestimientos"],
-        usos: "Cubiertas de techos resistentes a la intemperie para viviendas, naves industriales y galpones.",
-        preparacion: "Fijación con tornillos autoperforantes con arandela de neopreno sobre correas de madera o metal.",
-        actividad: "Recubrimiento galvanizado de alta durabilidad contra la corrosión marina y lluvias intensas.",
-        medidas: "3.66 m x 0.85 m / Espesor 0.30 mm",
-        fotosDeEjemplos: [
-          "/images/products/techos-zinc-ondulado.png",
-        ],
-      },
-      {
         name: "Paneles de Falso Techo PVC",
         slug: "paneles-falso-techo-pvc",
         imageUrl: "/images/products/falso-techo-pvc.png",
@@ -295,45 +323,144 @@ export const seedProducts = mutation({
         ],
       },
       {
-        name: "Losas Cerámicas de Tráfico Alto",
-        slug: "losas-ceramicas-trafico-alto",
-        imageUrl: "/images/products/losas-ceramicas.png",
+        name: "Cerámica Beauty Gris 45x45",
+        slug: "ceramica-beauty-gris-45x45",
+        imageUrl: "/images/products/cer%20Beauty%20gris%20de%2045x45.webp",
         categoryId: catMap["Terminaciones y Revestimientos"],
-        usos: "Pavimentos de interiores y terrazas exteriores con alta resistencia al desgaste.",
-        preparacion: "Instalar sobre carpeta nivelada utilizando mortero cola porcelánico y juntas mínimas de 2 mm.",
-        actividad: "Baja absorción de agua (<0.5%), resistencia al rayado y acabado antideslizante.",
-        medidas: "Formato 60 x 60 cm / Caja de 1.44 m²",
+        usos: "Piso y revestimiento elegante para ambientes interiores con estilo moderno, minimalista y sobrio.",
+        preparacion: "Instalar con mortero cola o adhesivo compatible y juntas uniformes para un acabado premium y duradero.",
+        actividad: "Cerámica de formato 45x45 con acabado gris sofisticado, bajo mantenimiento y alta resistencia al desgaste diario.",
+        medidas: "45 x 45 cm / formato estándar / ideal para baño, cocina, living y espacios de alta circulación",
         fotosDeEjemplos: [
-          "/images/products/losas-ceramicas.png",
+          "/images/products/cer%20Beauty%20gris%20de%2045x45.webp",
         ],
       },
       {
-        name: "Perfiles de Aluminio Estructural",
-        slug: "perfiles-aluminio-estructural",
-        imageUrl: "/images/products/perfil-aluminio.png",
+        name: "Cerámica Varias Blancas 30x30",
+        slug: "ceramica-varias-blancas-30x30",
+        imageUrl: "/images/products/Cer%20varias%20blancas%20de%2030x30.webp",
         categoryId: catMap["Terminaciones y Revestimientos"],
-        usos: "Fabricación de ventanería europea, puertas corredizas, mamparas y divisiones de oficinas.",
-        preparacion: "Corte a inglete y ensamble mecánico con escuadras de precisión y empaques de estanqueidad.",
-        actividad: "Aleación 6063-T5 con anodizado superior de 15 micras o acabado electrostático blanco/negro.",
-        medidas: "Barras de 6.00 m / Series 20, 25 y 45",
+        usos: "Revestimiento interior de alta luminosidad para cocina, baño, lavadero y espacios donde se desea un aspecto limpio y amplio.",
+        preparacion: "Aplicar sobre superficie nivelada con adhesivo recomendado y respetar ancho de junta para un acabado uniforme.",
+        actividad: "Cerámica blanca de 30x30 que aporta luminosidad, limpieza visual y buena resistencia a la humedad y al uso cotidiano.",
+        medidas: "30 x 30 cm / ideal para revestimientos interiores / acabados amplios y minimalistas",
         fotosDeEjemplos: [
-          "/images/products/perfil-aluminio.png",
+          "/images/products/Cer%20varias%20blancas%20de%2030x30.webp",
         ],
       },
       {
-        name: "Manguera Flexible Reforzada",
-        slug: "manguera-flexible-reforzada",
-        imageUrl: "/images/products/manguera-construccion.png",
+        name: "Lámpara de 30W",
+        slug: "lampara-de-30w",
+        imageUrl: "/images/products/lampara%20de%2030w.webp",
+        categoryId: catMap["Luminarias"],
+        usos: "Iluminación general de exteriores, estacionamientos, pasillos, bodegas, talleres y áreas de trabajo que requieren luz uniforme y eficiente.",
+        preparacion: "Instalar en soporte compatible con la potencia seleccionada, conectar a la red eléctrica según la tensión y verificar la correcta ventilación del cuerpo lumínico.",
+        actividad: "Dispositivo LED de alto rendimiento con consumo optimizado, larga vida útil y distribución uniforme de luz para uso continuo y seguro.",
+        revisionTecnica: "Revisión técnica: luminaria LED de 30 W, diseñada para instalaciones interiores y exteriores con demanda de eficiencia energética y durabilidad. Debe verificarse potencia, temperatura de color, índice de reproducción cromática, grado de protección y cumplimento eléctrico según la normativa local antes de la conexión definitiva.",
+        medidas: "Potencia 30 W / 220-240 V / temperatura de color 4000K-5000K / flujo luminoso según fabricante / carcasa resistente a condiciones ambientales",
+        fotosDeEjemplos: [
+          "/images/products/lampara%20de%2030w.webp",
+        ],
+      },
+      {
+        name: "Lámpara de 50W",
+        slug: "lampara-de-50w",
+        imageUrl: "/images/products/lampara%20de%2050%20w.png",
+        categoryId: catMap["Luminarias"],
+        usos: "Iluminación intensiva para patios, naves, estacionamientos, almacenes, áreas de carga y espacios abiertos con mayor requerimiento lumínico.",
+        preparacion: "Montar sobre estructura o techo compatible con la carga, verificar conexiones eléctricas, protección contra humedad y mantener separación adecuada de materiales inflamables.",
+        actividad: "Luminaria LED de 50 W con mayor salida lumínica, eficiencia energética y resistencia mecánica para operar en ambientes de trabajo intensivo.",
+        revisionTecnica: "Revisión técnica: luminaria LED de 50 W para uso industrial y comercial, con alto rendimiento en ambientes de trabajo y exteriores. Se recomienda revisar potencia, temperatura de color, ángulo de haz, nivel IP y sistema de conexión para asegurar funcionamiento seguro, durabilidad y cumplimiento de la normativa eléctrica vigente.",
+        medidas: "Potencia 50 W / 220-240 V / flujo luminoso elevado / temperatura de color 4000K-6500K / carcasa metalizada y resistencia a impactos",
+        fotosDeEjemplos: [
+          "/images/products/lampara%20de%2050%20w.png",
+        ],
+      },
+      {
+        name: "Tubería Eléctrica",
+        slug: "tuberia-electrica",
+        imageUrl: "/images/products/tuberia-electrica.png",
         categoryId: catMap["Tuberías y Canalizaciones"],
-        usos: "Conducción de agua a presión en obras, riego y drenajes industriales.",
-        preparacion: "Conectar con acoples rápidos y abrazaderas de acero inoxidable sin estrangular la tubería.",
-        actividad: "Refuerzo trenzado con resistencia hasta 15 bar y protección contra rayos UV.",
-        medidas: "Rollo de 50 m / Diámetro 3/4 pulgada",
+        usos: "Distribución eléctrica en instalaciones residenciales, comerciales e industriales, especialmente para proteger conductores en recorridos interiores y exteriores.",
+        preparacion: "Instalar con accesorios compatibles, fijación segura y trazado conforme a la normativa eléctrica local; verificar curvas, empalmes y cajas de paso antes del cierre.",
+        actividad: "Conduit flexible o rígido con alta resistencia mecánica, aislamiento térmico y protección contra golpes, abrasión y humedad ambiental.",
+        revisionTecnica: "Revisión técnica: tubería eléctrica para protección y conducción de circuitos, diseñada para uso en instalaciones con requerimientos de seguridad, aislamiento y resistencia mecánica. Debe seleccionarse según calibre, diámetro, temperatura de servicio y cumplimiento de la normativa vigente. Verificar empalmes, fijaciones y puesta a tierra antes de energizar.",
+        medidas: "Diámetro nominal 20 mm / 25 mm / 32 mm / Longitud estándar 50 m / material conduit flexible o rígido",
         fotosDeEjemplos: [
-          "/images/products/manguera-construccion.png",
+          "/images/products/tuberia-electrica.png",
+        ],
+      },
+      {
+        name: "Tubería Hidráulica",
+        slug: "tuberia-hidraulica",
+        imageUrl: "/images/products/tuberia-hidraulica.webp",
+        categoryId: catMap["Tuberías y Canalizaciones"],
+        usos: "Sistemas de agua potable, presión, drenaje y evacuación en viviendas, comercios, naves industriales y proyectos de infraestructura.",
+        preparacion: "Cortar y empalmar con accesorios compatibles, asegurar la fijación y aplicar pruebas de presión antes de poner el sistema en servicio.",
+        actividad: "Material diseñado para soportar presión, vibración y condiciones de servicio continuas, con alta resistencia a la abrasión y estabilidad térmica.",
+        revisionTecnica: "Revisión técnica: tubería hidráulica para transporte de agua y servicios sanitarios, con resistencia a presión, temperatura y agentes químicos del entorno. Se recomienda validar diámetro, espesor, unión y protección según el proyecto y la normativa sanitaria aplicable.",
+        medidas: "Diámetro nominal DN 20-110 mm / Presión nominal PN 10-16 / Longitud 6 m",
+        fotosDeEjemplos: [
+          "/images/products/tuberia-hidraulica.webp",
         ],
       },
 
+      {
+        name: "Arena Lavada",
+        slug: "arena-lavada",
+        imageUrl: "/images/products/arena lavada.png",
+        categoryId: catMap["Áridos y Agregados"],
+        usos: "Fabricación de concretos, morteros y acabados de albañilería, además de rellenos y capas base para pavimentos y preparación de superficie.",
+        preparacion: "Verificar humedad y granulometría antes del uso; dosificar con cemento, agua y aditivos según la mezcla y la resistencia requerida.",
+        actividad: "Granulometría uniforme, bajo contenido de arcilla y alta trabajabilidad que mejora la compacidad, resistencia y acabado final del concreto.",
+        revisionTecnica: "Revisión técnica: arena lavada de granulometría controlada, limpia y libre de material orgánico o finos excesivos. Especificada para morteros, concretos y capas de acabados donde se requiere uniformidad, adherencia y resistencia mecánica. Debe controlarse contenido de humedad y graduación antes del mezclado.",
+        medidas: "Granulometría 0-5 mm / material fino de cantera lavada / entrega por camión o bolsas según demanda",
+        fotosDeEjemplos: [
+          "/images/products/arena lavada.png",
+        ],
+      },
+      {
+        name: "Relleno",
+        slug: "relleno",
+        imageUrl: "/images/products/relleno.webp",
+        categoryId: catMap["Áridos y Agregados"],
+        usos: "Capa de apoyo, nivelación, compactación y relleno estructural en obras de cimentación, vías, patios y excavaciones.",
+        preparacion: "Extender en capas controladas y compactar con maquinaria apropiada para garantizar estabilidad, drenaje y resistencia al asentamiento.",
+        actividad: "Material granular de alta resistencia al aplastamiento, ideal para conformar bases, terraplenes y elevación de nivel de terreno.",
+        revisionTecnica: "Revisión técnica: material granular para relleno y compactación, con gradación y resistencia adecuadas para capas de subrasante y base. Su uso debe ir acompañado de compactación controlada para prevenir asentamientos, erosión y pérdida de nivelación en la obra.",
+        medidas: "Granulometría variable según proyecto / material de piedra triturada o grava de relleno / presentación por camión o bolsas",
+        fotosDeEjemplos: [
+          "/images/products/relleno.webp",
+        ],
+      },
+      {
+        name: "Racilla",
+        slug: "racilla",
+        imageUrl: "/images/products/racilla.webp",
+        categoryId: catMap["Áridos y Agregados"],
+        usos: "Concreto, morteros, carpeta asfáltica, drenajes y trabajos de relleno donde se requiere estabilidad y buena adherencia.",
+        preparacion: "Dosificar según resistencia del concreto y nivel de acabado requerido; controlar humedad y proporciones para evitar segregación.",
+        actividad: "Agregado de tamaño intermedio con buena resistencia a la compresión, trabajabilidad y capacidad de conformar mezclas homogéneas.",
+        revisionTecnica: "Revisión técnica: racilla con granulometría estable y baja presencia de finos, recomendada para morteros y concretos de uso estructural y de acabado. Debe verificarse gradación, limpieza y proporción para asegurar resistencia, durabilidad y estabilidad en la mezcla final.",
+        medidas: "Granulometría 3-12 mm / material de cantera o grava triturada / entrega por camión o bolsas según volumen",
+        fotosDeEjemplos: [
+          "/images/products/racilla.webp",
+        ],
+      },
+      {
+        name: "Hidrato de Cal",
+        slug: "hidrato-de-cal",
+        imageUrl: "/images/products/hidrato de cal.png",
+        categoryId: catMap["Áridos y Agregados"],
+        usos: "Preparación de morteros, estabilización de suelos, acabados y mejoras de plasticidad en mezclas de construcción y obra civil.",
+        preparacion: "Mezclar con agua y agregados según dosificación; usar en proporciones adecuadas para mejorar trabajabilidad y resistencia del mortero.",
+        actividad: "Aumenta la plasticidad y adherencia, mejora la trabajabilidad y favorece la resistencia final de morteros y capas de preparación.",
+        revisionTecnica: "Revisión técnica: hidrato de cal para uso en morteros, estabilización y acabados, con capacidad de mejorar la fluidez, adherencia y resistencia a la carbonatación. Debe almacenarse bajo condiciones secas y verificarse la pureza y finura del producto antes de su mezcla.",
+        medidas: "Material en polvo / uso para morteros y estabilización / presentación en sacos de 25 kg o según requerimiento",
+        fotosDeEjemplos: [
+          "/images/products/hidrato de cal.png",
+        ],
+      },
       {
         name: "Hormigón Premezclado",
         slug: "hormigon-premezclado",
