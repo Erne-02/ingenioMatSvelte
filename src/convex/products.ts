@@ -238,48 +238,7 @@ export const seedProducts = mutation({
       }
     }
 
-    // 2. Limpiar productos antiguos de Tuberías y Canalizaciones para dejar solo la versión con las imágenes nuevas
-    const tuberiasCategoryId = catMap["Tuberías y Canalizaciones"];
-    const existingTuberiaProducts = await ctx.db
-      .query("products")
-      .filter((q) => q.eq(q.field("categoryId"), tuberiasCategoryId))
-      .collect();
-
-    for (const product of existingTuberiaProducts) {
-      await ctx.db.delete(product._id);
-    }
-
-    const aridosCategoryId = catMap["Áridos y Agregados"];
-    const existingAridosProducts = await ctx.db
-      .query("products")
-      .filter((q) => q.eq(q.field("categoryId"), aridosCategoryId))
-      .collect();
-
-    for (const product of existingAridosProducts) {
-      await ctx.db.delete(product._id);
-    }
-
-    const luminariasCategoryId = catMap["Luminarias"];
-    const existingLuminariasProducts = await ctx.db
-      .query("products")
-      .filter((q) => q.eq(q.field("categoryId"), luminariasCategoryId))
-      .collect();
-
-    for (const product of existingLuminariasProducts) {
-      await ctx.db.delete(product._id);
-    }
-
-    const terminacionesCategoryId = catMap["Terminaciones y Revestimientos"];
-    const existingTerminacionesProducts = await ctx.db
-      .query("products")
-      .filter((q) => q.eq(q.field("categoryId"), terminacionesCategoryId))
-      .collect();
-
-    for (const product of existingTerminacionesProducts) {
-      await ctx.db.delete(product._id);
-    }
-
-    // 3. Sembrar productos con imágenes locales preparados para las categorías oficiales
+    // 2. Sembrar o actualizar los productos de ejemplo sin borrar productos creados desde el panel.
     const demoProducts = [
       {
         name: "Cemento",
